@@ -1,0 +1,11 @@
+#
+# .gitignore
+#
+
+# Maven related directories
+.mvn
+**/target
+
+.classpath
+.project
+.settings
