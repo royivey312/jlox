@@ -1,7 +1,5 @@
-package com.iind.app;
+package com.iind.lox;
 
-import com.iind.app.lox.Scanner;
-import com.iind.app.lox.Token;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,7 +37,7 @@ public class Lox {
     BufferedReader reader = new BufferedReader(input);
 
     for (; ; ) {
-      System.out.println("$ ");
+      System.out.print("jlox (Ctrl-D to exit) $ ");
       String line = reader.readLine();
 
       if (line == null) break;
@@ -47,6 +45,8 @@ public class Lox {
       run(line);
       hadError = false;
     }
+
+    System.out.println();
   }
 
   private static void run(String source) {
@@ -59,12 +59,12 @@ public class Lox {
     }
   }
 
- static void error(int line, String message) {
+  static void error(int line, String message) {
     report(line, "", message);
   }
 
   private static void report(int line, String where, String message) {
-    System.err.printf("[line %s] Error%s: %s", line, where, message);
+    System.err.printf("[line %s] Error%s: %s%n", line, where, message);
     hadError = true;
   }
 }
