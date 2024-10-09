@@ -6,7 +6,6 @@ function usage() {
 
 function printGenerationDetails() {
   echo "${parentClassName}>${innerClassName}"
-  # for ((i = 0; i < "${#elemArray[*]}"; i++)); do
   for elem in "${elemArray[@]}"; do
     echo "  ${elem}"
   done
@@ -15,9 +14,17 @@ function printGenerationDetails() {
 function writeTop() {
   echo "package com.iind.lox;"
   echo 
-  echo "import com.iind.lox.Token;"
-  echo
   echo "public abstract class ${parentClassName} {"
+  echo
+}
+
+function writeVisitorInterface() {
+  echo "  interface Visitor<R> {"
+  # Generate Visitor methods
+  while IFS=":" read -r innerClassName other; do
+    echo "    R visit${innerClassName}${parentClassName}(${innerClassName} ${innerClassName,*});"
+  done <<< $(tail -n +2 ${descriptor})
+  echo "  }"
   echo
 }
 
@@ -49,6 +56,12 @@ function writeInnerStaticClass() {
     echo "      this.${name} = ${name};"
   done
   echo "    }"
+
+  # Add Visitor pattern
+  echo
+  echo "    <R> R accept(Visitor<R> visitor) {"
+  echo "      return visitor.visit${innerClassName}${parentClassName}(this);"
+  echo "    }"
   echo "  }"
   echo
 }
@@ -69,6 +82,9 @@ parentClassName=${javaFileName/.java}
 # Start fresh file
 writeTop > ${javaFileName}
 
+# Write Visitor Interface
+writeVisitorInterface >> ${javaFileName}
+
 # Read Descriptor File, skipping header row
 while IFS=":" read -r innerClassName elements; do
   readarray -td , elemArray <<< "${elements}" # Generate Array from CSV
@@ -82,4 +98,4 @@ done <<< "$(tail -n +2 "${descriptor}")"
 
 writeBottom >> ${javaFileName}
 
-#cat ${javaFileName}
+cat ${javaFileName}

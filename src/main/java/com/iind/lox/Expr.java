@@ -2,6 +2,16 @@ package com.iind.lox;
 
 public abstract class Expr {
 
+  interface Visitor<R> {
+    R visitBinaryExpr(Binary binary);
+
+    R visitGroupingExpr(Grouping grouping);
+
+    R visitLiteralExpr(Literal literal);
+
+    R visitUnaryExpr(Unary unary);
+  }
+
   static class Binary extends Expr {
     final Expr left;
     final Token operator;
@@ -12,6 +22,10 @@ public abstract class Expr {
       this.operator = operator;
       this.right = right;
     }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBinaryExpr(this);
+    }
   }
 
   static class Grouping extends Expr {
@@ -20,6 +34,10 @@ public abstract class Expr {
     Grouping(Expr expression) {
       this.expression = expression;
     }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitGroupingExpr(this);
+    }
   }
 
   static class Literal extends Expr {
@@ -27,6 +45,10 @@ public abstract class Expr {
 
     Literal(Object value) {
       this.value = value;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitLiteralExpr(this);
     }
   }
 
@@ -37,6 +59,10 @@ public abstract class Expr {
     Unary(Token operator, Expr right) {
       this.operator = operator;
       this.right = right;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitUnaryExpr(this);
     }
   }
 }
