@@ -12,6 +12,8 @@ public abstract class Expr {
     R visitUnaryExpr(Unary unary);
   }
 
+  abstract <R> R accept(Visitor<R> visitor);
+
   static class Binary extends Expr {
     final Expr left;
     final Token operator;
