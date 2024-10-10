@@ -18,7 +18,6 @@ public class Parser {
     try {
       return expression();
     } catch (ParseError pe) {
-      synchronize();
       return null;
     }
   }
