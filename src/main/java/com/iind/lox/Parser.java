@@ -2,9 +2,8 @@ package com.iind.lox;
 
 import java.util.List;
 
-// TODO: Synchronizer, Wire in
 public class Parser {
-  static class ParserError extends RuntimeException {}
+  static class ParseError extends RuntimeException {}
 
   final List<Token> tokens;
 
@@ -14,12 +13,22 @@ public class Parser {
     this.tokens = tokens;
   }
 
+  // Public interface
+  Expr parse() {
+    try {
+      return expression();
+    } catch (ParseError pe) {
+      synchronize();
+      return null;
+    }
+  }
+
   //  expression -> equality ;
   private Expr expression() {
     return equality();
   }
 
-  // equality   -> comparison ( ( != | == ) comparison )* ;
+  // equality -> comparison ( ( != | == ) comparison )* ;
   private Expr equality() {
     Expr expr = comparison();
     while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
@@ -42,7 +51,7 @@ public class Parser {
     return expr;
   }
 
-  // term       -> factor ( ( "-" | "+" ) factor )* ;
+  // term -> factor ( ( "-" | "+" ) factor )* ;
   private Expr term() {
     Expr expr = factor();
     while (match(TokenType.PLUS, TokenType.MINUS)) {
@@ -53,7 +62,7 @@ public class Parser {
     return expr;
   }
 
-  // factor     -> unary ( ( "/" | "*" ) unary )* ;
+  // factor -> unary ( ( "/" | "*" ) unary )* ;
   private Expr factor() {
     Expr expr = unary();
     while (match(TokenType.SLASH, TokenType.STAR)) {
@@ -64,7 +73,7 @@ public class Parser {
     return expr;
   }
 
-  // unary      -> ( "!" | "-" ) unary | primary ;
+  // unary -> ( "!" | "-" ) unary | primary ;
   private Expr unary() {
     if (match(TokenType.BANG, TokenType.MINUS)) {
       Token operator = previous();
@@ -75,7 +84,7 @@ public class Parser {
     return primary();
   }
 
-  // primary    -> NUMBER| STRING | "true" | "false" | "nil" | "(" expression ")" ;
+  // primary -> NUMBER| STRING | "true" | "false" | "nil" | "(" expression ")" ;
   private Expr primary() {
     if (match(TokenType.TRUE)) return new Expr.Literal(true);
     if (match(TokenType.FALSE)) return new Expr.Literal(false);
@@ -91,7 +100,31 @@ public class Parser {
       return new Expr.Grouping(expr);
     }
 
-    throw error(peek(), "Unexpected token in expression");
+    throw error(peek(), "Expected expression!");
+  }
+
+  private void synchronize() {
+    advance();
+
+    while (!isAtEnd()) {
+      if (previous().type == TokenType.SEMICOLON) return;
+
+      switch (peek().type) {
+        case CLASS:
+        case FUN:
+        case FOR:
+        case WHILE:
+        case IF:
+        case PRINT:
+        case RETURN:
+        case VAR:
+          return;
+        default:
+          break;
+      }
+
+      advance();
+    }
   }
 
   private boolean match(TokenType... types) {
@@ -129,8 +162,8 @@ public class Parser {
     throw error(peek(), message);
   }
 
-  private ParserError error(Token token, String message) {
+  private ParseError error(Token token, String message) {
     Lox.error(token, message);
-    return new ParserError();
+    return new ParseError();
   }
 }

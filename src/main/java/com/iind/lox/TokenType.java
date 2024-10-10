@@ -35,20 +35,22 @@ public enum TokenType {
   // KEYWORDS
   AND,
   OR,
-  IF,
   ELSE,
   TRUE,
   FALSE,
-  VAR,
-  CLASS,
   NIL,
-  FUN,
-  PRINT,
-  RETURN,
   SUPER,
   THIS,
-  WHILE,
+
+  // Statement Kywords
+  CLASS,
+  FUN,
   FOR,
+  WHILE,
+  IF,
+  PRINT,
+  RETURN,
+  VAR,
 
   // END OF FILE
   EOF;
