@@ -16,13 +16,25 @@ public class Parser {
   // Public interface
   Expr parse() {
     try {
-      return expression();
+      return block();
     } catch (ParseError pe) {
       return null;
     }
   }
 
-  //  expression -> equality ;
+  //  block -> expression (, expression)* ;
+  private Expr block() {
+    Expr expr = expression();
+
+    while (match(TokenType.COMMA)) {
+      Expr right = expression();
+      expr = new Expr.Block(expr, right);
+    }
+
+    return expr;
+  }
+
+  //  expression -> equality ( ( ? expression )* : expression )? ;
   private Expr expression() {
     return equality();
   }
@@ -30,45 +42,68 @@ public class Parser {
   // equality -> comparison ( ( != | == ) comparison )* ;
   private Expr equality() {
     Expr expr = comparison();
+
     while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
       Token operator = previous();
       Expr right = comparison();
       expr = new Expr.Binary(expr, operator, right);
     }
+
     return expr;
   }
 
   // comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term)* ;
   private Expr comparison() {
     Expr expr = term();
+
     while (match(
         TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
       Token operator = previous();
       Expr right = term();
       expr = new Expr.Binary(expr, operator, right);
+    } 
+
+    if (match(TokenType.QUESTION_MARK)) expr = ternary(expr);
+
+    return expr;
+  }
+
+  private Expr ternary(Expr cond) {
+    Expr expr = expression();
+
+    if (match(TokenType.COLON)) {
+      Expr exprFalse = expression();
+      expr = new Expr.Ternary(cond, expr, exprFalse);
+    } else {
+      throw error(peek(), "Expected ternary termination!");
     }
+
     return expr;
   }
 
   // term -> factor ( ( "-" | "+" ) factor )* ;
   private Expr term() {
     Expr expr = factor();
+
     while (match(TokenType.PLUS, TokenType.MINUS)) {
       Token operator = previous();
       Expr right = factor();
       expr = new Expr.Binary(expr, operator, right);
     }
+
     return expr;
   }
 
   // factor -> unary ( ( "/" | "*" ) unary )* ;
   private Expr factor() {
     Expr expr = unary();
+
     while (match(TokenType.SLASH, TokenType.STAR)) {
       Token operator = previous();
       Expr right = unary();
       expr = new Expr.Binary(expr, operator, right);
     }
+
     return expr;
   }
 

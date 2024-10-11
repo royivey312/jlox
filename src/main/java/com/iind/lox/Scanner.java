@@ -63,6 +63,12 @@ public class Scanner {
       case ';':
         addToken(TokenType.SEMICOLON);
         break;
+      case '?':
+        addToken(TokenType.QUESTION_MARK);
+        break;
+      case ':':
+        addToken(TokenType.COLON);
+        break;
 
       // 1 OR 2 character
       case '!':

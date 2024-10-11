@@ -3,16 +3,45 @@ package com.iind.lox;
 public abstract class Expr {
 
   interface Visitor<R> {
+    R visitBlockExpr(Block Block);
+    R visitTernaryExpr(Ternary ternary);
     R visitBinaryExpr(Binary binary);
-
     R visitGroupingExpr(Grouping grouping);
-
     R visitLiteralExpr(Literal literal);
-
     R visitUnaryExpr(Unary unary);
   }
 
   abstract <R> R accept(Visitor<R> visitor);
+
+  static class Block extends Expr {
+    final Expr expr;
+    final Expr right;
+
+    Block(Expr expr, Expr right) {
+      this.expr = expr;
+      this.right = right;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBlockExpr(this);
+    }
+  }
+
+  static class Ternary extends Expr {
+    final Expr cond;
+    final Expr exprTrue;
+    final Expr exprFalse;
+
+    Ternary(Expr cond, Expr exprTrue, Expr exprFalse) {
+      this.cond = cond;
+      this.exprTrue = exprTrue;
+      this.exprFalse = exprFalse;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitTernaryExpr(this);
+    }
+  }
 
   static class Binary extends Expr {
     final Expr left;
@@ -67,4 +96,5 @@ public abstract class Expr {
       return visitor.visitUnaryExpr(this);
     }
   }
+
 }
