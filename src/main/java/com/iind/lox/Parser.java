@@ -42,7 +42,7 @@ public class Parser {
     while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
       Token operator = previous();
       Expr right = comparison();
-      expr = new Expr.Binary(expr, operator, right);
+      expr = binary(expr, operator, right);
     }
 
     return expr;
@@ -55,7 +55,7 @@ public class Parser {
         TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
       Token operator = previous();
       Expr right = term();
-      expr = new Expr.Binary(expr, operator, right);
+      expr = binary(expr, operator, right);
     } 
 
     if (match(TokenType.QUESTION_MARK)) expr = ternary(expr);
@@ -82,7 +82,7 @@ public class Parser {
     while (match(TokenType.PLUS, TokenType.MINUS)) {
       Token operator = previous();
       Expr right = factor();
-      expr = new Expr.Binary(expr, operator, right);
+      expr = binary(expr, operator, right);
     }
 
     return expr;
@@ -94,7 +94,7 @@ public class Parser {
     while (match(TokenType.SLASH, TokenType.STAR)) {
       Token operator = previous();
       Expr right = unary();
-      expr = new Expr.Binary(expr, operator, right);
+      expr = binary(expr, operator, right);
     }
 
     return expr;
@@ -125,7 +125,13 @@ public class Parser {
       return new Expr.Grouping(expr);
     }
 
-    throw error(peek(), "Expected expression!");
+    return null;
+  }
+
+  private Expr binary(Expr left, Token operator, Expr right) {
+    if (right != null) return new Expr.Binary(left, operator, right);
+
+    throw error(peek(), String.format("Expected RHS expression for '%s' operator",  operator.lexeme));
   }
 
   private void synchronize() {
