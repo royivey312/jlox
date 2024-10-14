@@ -3,7 +3,7 @@ package com.iind.lox;
 public abstract class Expr {
 
   interface Visitor<R> {
-    R visitBlockExpr(Block Block);
+    R visitBlockExpr(Block block);
     R visitTernaryExpr(Ternary ternary);
     R visitBinaryExpr(Binary binary);
     R visitGroupingExpr(Grouping grouping);
@@ -96,5 +96,4 @@ public abstract class Expr {
       return visitor.visitUnaryExpr(this);
     }
   }
-
 }
