@@ -27,6 +27,9 @@ public class Scanner {
     }
 
     tokens.add(new Token(TokenType.EOF, "", null, line));
+
+    if (Lox.OPTIONS.scannerDebug) debug();
+
     return tokens;
   }
 
@@ -223,5 +226,31 @@ public class Scanner {
     TokenType type = TokenType.KEYWORDS.getOrDefault(text, TokenType.IDENTIFIER);
 
     addToken(type);
+  }
+
+  private void debug() {
+    System.out.println("Scanner Output:");
+    outputByStmt();
+  }
+
+  private void outputByStmt() {
+    TokenType prev = TokenType.EOF;
+    for (Token token : tokens) {
+      String fmt = " %s,";
+      switch(token.type) {
+        case SEMICOLON:
+          fmt = " %s%n";
+          break;
+        case EOF:
+          fmt = "  %s%n";
+          break;
+        default:
+          if (prev == TokenType.EOF || prev == TokenType.SEMICOLON) fmt = "  %s,";
+          break;
+      }
+      System.out.printf(fmt, token.type);
+      prev = token.type;
+    }
+    System.out.println();
   }
 }

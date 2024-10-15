@@ -6,8 +6,10 @@ import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
 import com.iind.lox.Expr.Ternary;
 import com.iind.lox.Expr.Unary;
+import com.iind.lox.Stmt.Expression;
+import com.iind.lox.Stmt.Print;
 
-public class AstPrinter implements Expr.Visitor<String> {
+public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
   @Override
   public String visitBlockExpr(Block block) {
@@ -39,8 +41,22 @@ public class AstPrinter implements Expr.Visitor<String> {
     return parenthesize(unary.operator.lexeme, unary.right);
   }
 
+  @Override
+  public String visitExpressionStmt(Expression expression) {
+    return "exprStmt:" + expression.expr.accept(this);
+  }
+
+  @Override
+  public String visitPrintStmt(Print print) {
+    return "print:" + print.expr.accept(this);
+  }
+
   String print(Expr expr) {
     return expr.accept(this);
+  }
+
+  String print(Stmt stmt) {
+    return stmt.accept(this);
   }
 
   private String parenthesize(String name, Expr... exprs) {

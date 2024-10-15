@@ -10,10 +10,14 @@ import java.util.List;
 
 public class Lox {
   private static final Interpreter INTERPRETER = new Interpreter();
+
   static boolean hadError;
   static boolean hadRuntimeError;
 
+  static final LoxInterpreterOptions OPTIONS = new LoxInterpreterOptions();
+
   public static void main(String[] args) throws IOException {
+    OPTIONS.collectOptions();
     if (args.length > 1) {
       System.out.println("Usage: jlox [script]");
       System.exit(64);
@@ -29,7 +33,6 @@ public class Lox {
 
     run(new String(bytes, Charset.defaultCharset()));
 
-    // Indicate an error in the exit code
     if (hadError) System.exit(65);
     if (hadRuntimeError) System.exit(70);
   }
@@ -39,8 +42,10 @@ public class Lox {
 
     BufferedReader reader = new BufferedReader(input);
 
+    System.out.println();
+    System.out.println("Welcome to the Java Lox Interpreter (Ctrl-D to exit)");
     for (; ; ) {
-      System.out.print("jlox (Ctrl-D to exit) $ ");
+      System.out.print("jlox $ ");
       String line = reader.readLine();
 
       if (line == null) break;
@@ -57,11 +62,11 @@ public class Lox {
     List<Token> tokens = scanner.scanTokens();
 
     Parser parser = new Parser(tokens);
-    Expr expression = parser.parse();
+    List<Stmt> statements = parser.parse();
 
     if (hadError) return;
 
-    INTERPRETER.interpret(expression);
+    INTERPRETER.interpret(statements);
   }
 
   static void error(int line, String message) {
@@ -84,5 +89,28 @@ public class Lox {
   private static void report(int line, String where, String message) {
     System.err.printf("[line %s] Error %s: %s%n", line, where, message);
     hadError = true;
+  }
+
+  static class LoxInterpreterOptions {
+    boolean scannerDebug = false;
+    boolean parserDebug = false;
+    boolean interpreterDebug = false;
+
+    public void collectOptions() {
+      if (isOn("scannerDebug")) scannerDebug = true;
+      if (isOn("parserDebug")) parserDebug = true;
+      if (isOn("interpreterDebug")) interpreterDebug = true;
+//    printOptions();
+    }
+
+    private boolean isOn(String prop) {
+      return System.getProperty(prop) != null;
+    }
+
+    private void printOptions() {
+      System.out.println("scannerDebug=" + scannerDebug);
+      System.out.println("parserDebug=" + parserDebug);
+      System.out.println("interpreterDebug=" + interpreterDebug);
+    }
   }
 }

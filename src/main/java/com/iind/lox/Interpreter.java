@@ -6,16 +6,24 @@ import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
 import com.iind.lox.Expr.Ternary;
 import com.iind.lox.Expr.Unary;
+import com.iind.lox.Stmt.Expression;
+import com.iind.lox.Stmt.Print;
+import java.util.List;
 
-public class Interpreter implements Expr.Visitor<Object> {
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
-  void interpret(Expr expr) {
+  void interpret(List<Stmt> statements) {
     try {
-      Object res = evaluate(expr);
-      System.out.println(stringify(res));
+      for (Stmt statement : statements) {
+        execute(statement);
+      }
     } catch (RuntimeError e) {
       Lox.runtimeError(e);
     }
+  }
+
+  private void execute(Stmt statement) {
+    statement.accept(this);
   }
 
   @Override
@@ -154,5 +162,18 @@ public class Interpreter implements Expr.Visitor<Object> {
     }
 
     return obj.toString();
+  }
+
+  @Override
+  public Void visitExpressionStmt(Expression expression) {
+    evaluate(expression.expr);
+    return null;
+  }
+
+  @Override
+  public Void visitPrintStmt(Print print) {
+    Object value = evaluate(print.expr);
+    System.out.println(stringify(value));
+    return null;
   }
 }

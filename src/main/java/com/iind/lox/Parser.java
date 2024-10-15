@@ -1,5 +1,6 @@
 package com.iind.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Parser {
@@ -13,12 +14,31 @@ public class Parser {
     this.tokens = tokens;
   }
 
-  Expr parse() {
-    try {
-      return block();
-    } catch (ParseError pe) {
-      return null;
+  List<Stmt> parse() {
+    List<Stmt> statements = new ArrayList<>();
+    while (!isAtEnd()) {
+      statements.add(statement());
     }
+    if (Lox.OPTIONS.parserDebug) debug(statements);
+    return statements;
+  }
+
+  private Stmt statement() {
+    if (match(TokenType.PRINT)) return printStatement();
+
+    return expressionStatement();
+  }
+
+  private Stmt printStatement() {
+    Expr expr = block();
+    consume(TokenType.SEMICOLON, "Expect ';' after value.");
+    return new Stmt.Print(expr);
+  }
+
+  private Stmt expressionStatement() {
+    Expr expr = block();
+    consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+    return new Stmt.Expression(expr);
   }
 
   private Expr block() {
@@ -56,7 +76,7 @@ public class Parser {
       Token operator = previous();
       Expr right = term();
       expr = binary(expr, operator, right);
-    } 
+    }
 
     if (match(TokenType.QUESTION_MARK)) expr = ternary(expr);
 
@@ -131,7 +151,8 @@ public class Parser {
   private Expr binary(Expr left, Token operator, Expr right) {
     if (right != null) return new Expr.Binary(left, operator, right);
 
-    throw error(peek(), String.format("Expected RHS expression for '%s' operator",  operator.lexeme));
+    throw error(
+        peek(), String.format("Expected RHS expression for '%s' operator", operator.lexeme));
   }
 
   private void synchronize() {
@@ -172,7 +193,7 @@ public class Parser {
   }
 
   private boolean isAtEnd() {
-    return current >= tokens.size();
+    return peek().type == TokenType.EOF;
   }
 
   private Token advance() {
@@ -196,5 +217,12 @@ public class Parser {
   private ParseError error(Token token, String message) {
     Lox.error(token, message);
     return new ParseError();
+  }
+
+  private void debug(List<Stmt> statements) {
+    AstPrinter printer = new AstPrinter();
+    System.out.println("Parser Output:");
+    statements.forEach(s -> System.out.println("  " + printer.print(s)));
+    System.out.println();
   }
 }
