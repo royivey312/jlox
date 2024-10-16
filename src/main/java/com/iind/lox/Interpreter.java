@@ -59,6 +59,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         break;
       case SLASH:
         checkOperands(binary.operator, lhs, rhs);
+        if (rhs.equals(Double.valueOf(0))) throw new RuntimeError(binary.operator, "Divide by 0 not allowed");
         res = (double) lhs / (double) rhs;
         break;
       case BANG_EQUAL:
@@ -153,7 +154,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       res = stringify(lhs) + stringify(rhs);
     } else {
       throw new RuntimeError(
-          operator, "Operands must be either two numbers, two strings, or a string and a number;");
+          operator, "Operands must be either two numbers, two strings, or a string and a number");
     }
     return res;
   }
