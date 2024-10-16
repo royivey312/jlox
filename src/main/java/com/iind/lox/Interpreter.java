@@ -51,14 +51,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         res = (double) lhs - (double) rhs;
         break;
       case PLUS:
-        if (lhs instanceof Double && rhs instanceof Double) {
-          res = (double) lhs + (double) rhs;
-        } else if (lhs instanceof String && rhs instanceof String) {
-          res = (String) lhs + (String) rhs;
-        } else {
-          throw new RuntimeError(
-              binary.operator, "Operands must be either two numbers or two strings");
-        }
+        res = addition(binary.operator, lhs, rhs);
         break;
       case STAR:
         checkOperands(binary.operator, lhs, rhs);
@@ -150,6 +143,28 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   private void checkOperands(Token operator, Object leftOp, Object rightOp) {
     if (leftOp instanceof Double && rightOp instanceof Double) return;
     throw new RuntimeError(operator, "Operands must be numbers");
+  }
+
+  private Object addition(Token operator, Object lhs, Object rhs) {
+    Object res = null;
+    if (lhs instanceof Double && rhs instanceof Double) {
+      res = (double) lhs + (double) rhs;
+    } else if (bothStr(lhs, rhs) || mixedStrDbl(lhs, rhs)) {
+      res = stringify(lhs) + stringify(rhs);
+    } else {
+      throw new RuntimeError(
+          operator, "Operands must be either two numbers, two strings, or a string and a number;");
+    }
+    return res;
+  }
+  
+  private boolean mixedStrDbl(Object lhs, Object rhs) {
+    return (lhs instanceof String && rhs instanceof Double)
+        || (lhs instanceof Double && rhs instanceof String);
+  }
+
+  private boolean bothStr(Object lhs, Object rhs) {
+    return lhs instanceof String && lhs instanceof String;
   }
 
   private String stringify(Object obj) {
