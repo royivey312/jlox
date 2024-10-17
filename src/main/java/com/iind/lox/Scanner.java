@@ -28,7 +28,9 @@ public class Scanner {
 
     tokens.add(new Token(TokenType.EOF, "", null, line));
 
-    if (Lox.OPTIONS.scannerDebug) debug();
+    if (Lox.OPTIONS.scannerDebug) {
+      debug();
+    }
 
     return tokens;
   }
@@ -182,7 +184,9 @@ public class Scanner {
     while (peek() != '*' && peekNext() != '/') {
       if (!isAtEnd()) {
         char c = advance();
-        if (c == '\n') line++;
+        if (c == '\n') {
+          line++;
+        }
       } else {
         Lox.error(line, "Unterminated multi-line comment");
         complete = false;
@@ -190,12 +194,16 @@ public class Scanner {
       }
     }
     // Last "*/"
-    if (complete) current += 2;
+    if (complete) {
+      current += 2;
+    }
   }
 
   private void string() {
     while (peek() != '"' && !isAtEnd()) {
-      if (peek() == '\n') line++;
+      if (peek() == '\n') {
+        line++;
+      }
       advance();
     }
 
@@ -213,16 +221,20 @@ public class Scanner {
 
     if (peek() == '.' && isDigit(peekNext())) {
       advance();
-      while (isDigit(peek())) advance();
+      while (isDigit(peek())) {
+        advance();
+      }
     }
 
     addToken(TokenType.NUMBER, Double.parseDouble(source.substring(start, current)));
   }
 
   private void identifier() {
-    while (isAlphaNumeric(peek())) advance();
+    while (isAlphaNumeric(peek())) {
+      advance();
+    }
 
-    String text = source.substring(start, current).toLowerCase();
+    String text = source.substring(start, current);
     TokenType type = TokenType.KEYWORDS.getOrDefault(text, TokenType.IDENTIFIER);
 
     addToken(type);
@@ -237,7 +249,7 @@ public class Scanner {
     TokenType prev = TokenType.EOF;
     for (Token token : tokens) {
       String fmt = " %s,";
-      switch(token.type) {
+      switch (token.type) {
         case SEMICOLON:
           fmt = " %s%n";
           break;
@@ -245,7 +257,9 @@ public class Scanner {
           fmt = "  %s%n";
           break;
         default:
-          if (prev == TokenType.EOF || prev == TokenType.SEMICOLON) fmt = "  %s,";
+          if (prev == TokenType.EOF || prev == TokenType.SEMICOLON) {
+            fmt = "  %s,";
+          }
           break;
       }
       System.out.printf(fmt, token.type);

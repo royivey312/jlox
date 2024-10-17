@@ -1,3 +1,5 @@
 class_name:data0,data1,data2
 Expression:Expr expr
+Var:Token name,Expr initializer
+Block:List<Stmt> statements
 Print:Expr expr

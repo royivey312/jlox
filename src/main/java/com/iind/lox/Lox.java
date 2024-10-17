@@ -100,7 +100,7 @@ public class Lox {
       if (isOn("scannerDebug")) scannerDebug = true;
       if (isOn("parserDebug")) parserDebug = true;
       if (isOn("interpreterDebug")) interpreterDebug = true;
-//    printOptions();
+      printOptions();
     }
 
     private boolean isOn(String prop) {

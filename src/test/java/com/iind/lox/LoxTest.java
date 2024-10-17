@@ -1,4 +1,4 @@
-package com.iind.app;
+package com.iind.lox;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

@@ -18,6 +18,8 @@ function printGenerationDetails() {
 
 function writeTop() {
   echo "package com.iind.lox;"
+  echo
+  echo "import java.util.List;"
   echo 
   echo "public abstract class ${parentClassName} {"
   echo

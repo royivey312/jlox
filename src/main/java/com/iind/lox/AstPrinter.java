@@ -1,19 +1,27 @@
 package com.iind.lox;
 
+import com.iind.lox.Expr.Assignment;
 import com.iind.lox.Expr.Binary;
 import com.iind.lox.Expr.Block;
 import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
 import com.iind.lox.Expr.Ternary;
 import com.iind.lox.Expr.Unary;
+import com.iind.lox.Expr.Variable;
 import com.iind.lox.Stmt.Expression;
 import com.iind.lox.Stmt.Print;
+import com.iind.lox.Stmt.Var;
 
 public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
   @Override
   public String visitBlockExpr(Block block) {
     return parenthesize("block", block.expr, block.right);
+  }
+
+  @Override
+  public String visitAssignmentExpr(Assignment assignment) {
+    return parenthesize(String.format("assignment: %s=", assignment.name.lexeme), assignment.value);
   }
 
   @Override
@@ -32,6 +40,11 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   }
 
   @Override
+  public String visitVariableExpr(Variable variable) {
+    return variable.name.lexeme;
+  }
+
+  @Override
   public String visitLiteralExpr(Literal literal) {
     return literal.value != null ? literal.value.toString() : "nil";
   }
@@ -47,8 +60,25 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   }
 
   @Override
+  public String visitBlockStmt(Stmt.Block block) {
+    StringBuilder builder = new StringBuilder();
+    for (Stmt statement: block.statements) {
+      builder.append(block.statements.indexOf(statement) + 1)
+             .append("=")
+             .append(statement.accept(this))
+             .append("\n");
+    }
+    return "blockStmt:\n" + builder.toString();
+  }
+
+  @Override
   public String visitPrintStmt(Print print) {
     return "print:" + print.expr.accept(this);
+  }
+
+  @Override
+  public String visitVarStmt(Var var) {
+    return "varDecl: " + var.name.lexeme + " = " + var.initializer.accept(this);
   }
 
   String print(Expr expr) {

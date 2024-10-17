@@ -1,10 +1,13 @@
 package com.iind.lox;
 
+import java.util.List;
+
 public abstract class Stmt {
 
   interface Visitor<R> {
     R visitExpressionStmt(Expression expression);
-
+    R visitVarStmt(Var var);
+    R visitBlockStmt(Block block);
     R visitPrintStmt(Print print);
   }
 
@@ -22,6 +25,32 @@ public abstract class Stmt {
     }
   }
 
+  static class Var extends Stmt {
+    final Token name;
+    final Expr initializer;
+
+    Var(Token name, Expr initializer) {
+      this.name = name;
+      this.initializer = initializer;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitVarStmt(this);
+    }
+  }
+
+  static class Block extends Stmt {
+    final List<Stmt> statements;
+
+    Block(List<Stmt> statements) {
+      this.statements = statements;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBlockStmt(this);
+    }
+  }
+
   static class Print extends Stmt {
     final Expr expr;
 
@@ -33,4 +62,5 @@ public abstract class Stmt {
       return visitor.visitPrintStmt(this);
     }
   }
+
 }

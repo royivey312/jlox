@@ -4,10 +4,12 @@ public abstract class Expr {
 
   interface Visitor<R> {
     R visitBlockExpr(Block block);
+    R visitAssignmentExpr(Assignment assignment);
     R visitTernaryExpr(Ternary ternary);
     R visitBinaryExpr(Binary binary);
     R visitGroupingExpr(Grouping grouping);
     R visitLiteralExpr(Literal literal);
+    R visitVariableExpr(Variable variable);
     R visitUnaryExpr(Unary unary);
   }
 
@@ -24,6 +26,20 @@ public abstract class Expr {
 
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitBlockExpr(this);
+    }
+  }
+
+  static class Assignment extends Expr {
+    final Token name;
+    final Expr value;
+
+    Assignment(Token name, Expr value) {
+      this.name = name;
+      this.value = value;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitAssignmentExpr(this);
     }
   }
 
@@ -83,6 +99,18 @@ public abstract class Expr {
     }
   }
 
+  static class Variable extends Expr {
+    final Token name;
+
+    Variable(Token name) {
+      this.name = name;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitVariableExpr(this);
+    }
+  }
+
   static class Unary extends Expr {
     final Token operator;
     final Expr right;
@@ -96,4 +124,5 @@ public abstract class Expr {
       return visitor.visitUnaryExpr(this);
     }
   }
+
 }

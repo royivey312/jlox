@@ -17,31 +17,73 @@ public class Parser {
   List<Stmt> parse() {
     List<Stmt> statements = new ArrayList<>();
     while (!isAtEnd()) {
-      statements.add(statement());
+      statements.add(declaration());
     }
-    if (Lox.OPTIONS.parserDebug) debug(statements);
+    if (Lox.OPTIONS.parserDebug) {
+      debug(statements);
+    }
     return statements;
   }
 
+  private Stmt declaration() {
+    try {
+      if (match(TokenType.VAR)) {
+        return varDeclaration();
+      }
+      return statement();
+    } catch (ParseError error) {
+      synchronize();
+      return null;
+    }
+  }
+
+  private Stmt varDeclaration() {
+    Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+
+    Expr initializer = null;
+    if (match(TokenType.EQUAL)) {
+      initializer = expression();
+    }
+
+    consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+    return new Stmt.Var(name, initializer);
+  }
+
   private Stmt statement() {
-    if (match(TokenType.PRINT)) return printStatement();
+    if (match(TokenType.PRINT)) {
+      return printStatement();
+    }
+
+    if (match(TokenType.LEFT_BRACE)) {
+      return blockStatement();
+    }
 
     return expressionStatement();
   }
 
   private Stmt printStatement() {
-    Expr expr = block();
+    Expr expr = blockExpression();
     consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Stmt.Print(expr);
   }
 
+  private Stmt blockStatement() {
+    List<Stmt> statements = new ArrayList<>();
+    while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+      statements.add(statement());
+    }
+
+    consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+    return new Stmt.Block(statements);
+  }
+
   private Stmt expressionStatement() {
-    Expr expr = block();
+    Expr expr = blockExpression();
     consume(TokenType.SEMICOLON, "Expect ';' after expression.");
     return new Stmt.Expression(expr);
   }
 
-  private Expr block() {
+  private Expr blockExpression() {
     Expr expr = expression();
 
     while (match(TokenType.COMMA)) {
@@ -53,7 +95,25 @@ public class Parser {
   }
 
   private Expr expression() {
-    return equality();
+    return assignment();
+  }
+
+  private Expr assignment() {
+    Expr expr = equality();
+
+    if (match(TokenType.EQUAL)) {
+      Token equals = previous();
+      Expr value = expression();
+
+      if (expr instanceof Expr.Variable) {
+        Token name = ((Expr.Variable)expr).name;
+        expr = new Expr.Assignment(name, value);
+      } else {
+        error(equals, "Invalid assignment target.");
+      }
+    }
+
+    return expr;
   }
 
   private Expr equality() {
@@ -131,12 +191,24 @@ public class Parser {
   }
 
   private Expr primary() {
-    if (match(TokenType.TRUE)) return new Expr.Literal(true);
-    if (match(TokenType.FALSE)) return new Expr.Literal(false);
-    if (match(TokenType.NIL)) return new Expr.Literal(null);
+    if (match(TokenType.TRUE)) {
+      return new Expr.Literal(true);
+    }
+
+    if (match(TokenType.FALSE)) {
+      return new Expr.Literal(false);
+    }
+
+    if (match(TokenType.NIL)) {
+      return new Expr.Literal(null);
+    }
 
     if (match(TokenType.NUMBER, TokenType.STRING)) {
       return new Expr.Literal(previous().literal);
+    }
+
+    if (match(TokenType.IDENTIFIER)) {
+      return new Expr.Variable(previous());
     }
 
     if (match(TokenType.LEFT_PAREN)) {
@@ -149,7 +221,9 @@ public class Parser {
   }
 
   private Expr binary(Expr left, Token operator, Expr right) {
-    if (right != null) return new Expr.Binary(left, operator, right);
+    if (right != null) {
+      return new Expr.Binary(left, operator, right);
+    }
 
     throw error(
         peek(), String.format("Expected RHS expression for '%s' operator", operator.lexeme));
@@ -159,7 +233,9 @@ public class Parser {
     advance();
 
     while (!isAtEnd()) {
-      if (previous().type == TokenType.SEMICOLON) return;
+      if (previous().type == TokenType.SEMICOLON) {
+        return;
+      }
 
       switch (peek().type) {
         case CLASS:
@@ -180,7 +256,9 @@ public class Parser {
   }
 
   private boolean match(TokenType... types) {
-    if (isAtEnd()) return false;
+    if (isAtEnd()) {
+      return false;
+    }
 
     for (TokenType type : types) {
       if (peek().type == type) {
@@ -208,8 +286,14 @@ public class Parser {
     return tokens.get(current - 1);
   }
 
+  private boolean check(TokenType type) {
+    return previous().type == type;
+  }
+
   private Token consume(TokenType type, String message) {
-    if (peek().type == type) return advance();
+    if (check(type)) {
+      return advance();
+    }
 
     throw error(peek(), message);
   }

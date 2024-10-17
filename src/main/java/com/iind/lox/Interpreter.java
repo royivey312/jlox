@@ -1,16 +1,21 @@
 package com.iind.lox;
 
+import com.iind.lox.Expr.Assignment;
 import com.iind.lox.Expr.Binary;
 import com.iind.lox.Expr.Block;
 import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
 import com.iind.lox.Expr.Ternary;
 import com.iind.lox.Expr.Unary;
+import com.iind.lox.Expr.Variable;
 import com.iind.lox.Stmt.Expression;
 import com.iind.lox.Stmt.Print;
+import com.iind.lox.Stmt.Var;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+
+  private Environment environment = new Environment();
 
   void interpret(List<Stmt> statements) {
     try {
@@ -26,11 +31,32 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     statement.accept(this);
   }
 
+  private void executeBlockStmt(List<Stmt> statements, Environment environment) {
+    Environment prev = this.environment;
+    try {
+      this.environment = environment;
+
+      for (Stmt statement: statements) {
+        execute(statement);
+      }
+    } finally {
+      this.environment = prev;
+    }
+  }
+
   @Override
   public Object visitBlockExpr(Block block) {
     Object res = evaluate(block.expr);
     evaluate(block.right);
     return res;
+  }
+
+
+  @Override
+  public Object visitAssignmentExpr(Assignment assignment) {
+    Object value = evaluate(assignment.value);
+    environment.assign(assignment.name, value);
+    return value;
   }
 
   @Override
@@ -59,7 +85,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         break;
       case SLASH:
         checkOperands(binary.operator, lhs, rhs);
-        if (rhs.equals(Double.valueOf(0))) throw new RuntimeError(binary.operator, "Divide by 0 not allowed");
+        if (rhs.equals(Double.valueOf(0))) {
+          throw new RuntimeError(binary.operator, "Divide by 0 not allowed");
+        }
         res = (double) lhs / (double) rhs;
         break;
       case BANG_EQUAL:
@@ -97,6 +125,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   @Override
+  public Object visitVariableExpr(Variable variable) {
+    return environment.get(variable.name);
+  }
+
+  @Override
   public Object visitLiteralExpr(Literal literal) {
     return literal.value;
   }
@@ -119,30 +152,70 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return res;
   }
 
+  @Override
+  public Void visitExpressionStmt(Expression expression) {
+    evaluate(expression.expr);
+    return null;
+  }
+
+  @Override
+  public Void visitPrintStmt(Print print) {
+    Object value = evaluate(print.expr);
+    System.out.println(stringify(value));
+    return null;
+  }
+
+  @Override
+  public Void visitVarStmt(Var var) {
+    Object value = null;
+    if (var.initializer != null) {
+      value = evaluate(var.initializer);
+    }
+    environment.define(var.name.lexeme, value);
+
+    return null;
+  }
+
+  @Override
+  public Void visitBlockStmt(Stmt.Block block) {
+    executeBlockStmt(block.statements, new Environment(environment));
+    return null;
+  }
+
   private Object evaluate(Expr expr) {
     return expr.accept(this);
   }
 
   private Boolean isTruthy(Object obj) {
     Boolean res = true;
-    if (obj == null) res = false;
-    else if (obj instanceof Boolean) res = (Boolean) obj;
+    if (obj == null) {
+      res = false;
+    } else if (obj instanceof Boolean) {
+      res = (Boolean) obj;
+    }
     return res;
   }
 
   private Boolean isEqual(Object a, Object b) {
-    if (a == null && b == null) return true;
-    if (a == null) return false;
+    if (a == null && b == null) {
+      return true;
+    } else if (a == null) {
+      return false;
+    }
     return a.equals(b);
   }
 
   private void checkOperand(Token operator, Object operand) {
-    if (operand instanceof Double) return;
+    if (operand instanceof Double) {
+      return;
+    }
     throw new RuntimeError(operator, "Operand must be a number");
   }
 
   private void checkOperands(Token operator, Object leftOp, Object rightOp) {
-    if (leftOp instanceof Double && rightOp instanceof Double) return;
+    if (leftOp instanceof Double && rightOp instanceof Double) {
+      return;
+    }
     throw new RuntimeError(operator, "Operands must be numbers");
   }
 
@@ -158,7 +231,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     return res;
   }
-  
+
   private boolean mixedStrDbl(Object lhs, Object rhs) {
     return (lhs instanceof String && rhs instanceof Double)
         || (lhs instanceof Double && rhs instanceof String);
@@ -169,27 +242,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   private String stringify(Object obj) {
-    if (obj == null) return "nil";
+    if (obj == null) {
+      return "nil";
+    }
 
     if (obj instanceof Double) {
       String text = obj.toString();
-      if (text.endsWith(".0")) return text.substring(0, text.length() - 2);
+      if (text.endsWith(".0")) {
+        return text.substring(0, text.length() - 2);
+      }
       return text;
     }
 
     return obj.toString();
-  }
-
-  @Override
-  public Void visitExpressionStmt(Expression expression) {
-    evaluate(expression.expr);
-    return null;
-  }
-
-  @Override
-  public Void visitPrintStmt(Print print) {
-    Object value = evaluate(print.expr);
-    System.out.println(stringify(value));
-    return null;
   }
 }
