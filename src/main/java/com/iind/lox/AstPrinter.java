@@ -9,6 +9,7 @@ import com.iind.lox.Expr.Ternary;
 import com.iind.lox.Expr.Unary;
 import com.iind.lox.Expr.Variable;
 import com.iind.lox.Stmt.Expression;
+import com.iind.lox.Stmt.IfControl;
 import com.iind.lox.Stmt.Print;
 import com.iind.lox.Stmt.Var;
 
@@ -60,13 +61,30 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   }
 
   @Override
+  public String visitIfControlStmt(IfControl ifControl) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("if cond:").append(parenthesize("", ifControl.cond)).append("\n");
+
+    if (ifControl.thenBranch != null) {
+      builder.append("if then:").append(ifControl.thenBranch.accept(this)).append("\n");
+    }
+
+    if (ifControl.elseBranch != null) {
+      builder.append("if else:").append(ifControl.elseBranch.accept(this)).append("\n");
+    }
+
+    return builder.toString();
+  }
+
+  @Override
   public String visitBlockStmt(Stmt.Block block) {
     StringBuilder builder = new StringBuilder();
-    for (Stmt statement: block.statements) {
-      builder.append(block.statements.indexOf(statement) + 1)
-             .append("=")
-             .append(statement.accept(this))
-             .append("\n");
+    for (Stmt statement : block.statements) {
+      builder
+          .append(block.statements.indexOf(statement) + 1)
+          .append("=")
+          .append(statement.accept(this))
+          .append("\n");
     }
     return "blockStmt:\n" + builder.toString();
   }

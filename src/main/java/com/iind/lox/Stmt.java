@@ -6,6 +6,7 @@ public abstract class Stmt {
 
   interface Visitor<R> {
     R visitExpressionStmt(Expression expression);
+    R visitIfControlStmt(IfControl ifControl);
     R visitVarStmt(Var var);
     R visitBlockStmt(Block block);
     R visitPrintStmt(Print print);
@@ -22,6 +23,22 @@ public abstract class Stmt {
 
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitExpressionStmt(this);
+    }
+  }
+
+  static class IfControl extends Stmt {
+    final Expr cond;
+    final Stmt thenBranch;
+    final Stmt elseBranch;
+
+    IfControl(Expr cond, Stmt thenBranch, Stmt elseBranch) {
+      this.cond = cond;
+      this.thenBranch = thenBranch;
+      this.elseBranch = elseBranch;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitIfControlStmt(this);
     }
   }
 

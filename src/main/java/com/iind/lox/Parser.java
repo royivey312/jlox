@@ -50,15 +50,34 @@ public class Parser {
   }
 
   private Stmt statement() {
-    if (match(TokenType.PRINT)) {
+    if (match(TokenType.IF)) {
+      return ifStatement();
+    }
+
+    else if (match(TokenType.PRINT)) {
       return printStatement();
     }
 
-    if (match(TokenType.LEFT_BRACE)) {
+    else if (match(TokenType.LEFT_BRACE)) {
       return blockStatement();
     }
 
     return expressionStatement();
+  }
+
+  private Stmt ifStatement() {
+    consume(TokenType.LEFT_PAREN, "Expect '(' after if.");
+    Expr cond = expression();
+    consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+
+    Stmt thenBranch = statement();
+
+    Stmt elseBranch = null;
+    if (match(TokenType.ELSE)) {
+      elseBranch = statement();
+    }
+
+    return new Stmt.IfControl(cond, thenBranch, elseBranch);
   }
 
   private Stmt printStatement() {
@@ -287,7 +306,7 @@ public class Parser {
   }
 
   private boolean check(TokenType type) {
-    return previous().type == type;
+    return peek().type == type;
   }
 
   private Token consume(TokenType type, String message) {
@@ -306,7 +325,13 @@ public class Parser {
   private void debug(List<Stmt> statements) {
     AstPrinter printer = new AstPrinter();
     System.out.println("Parser Output:");
-    statements.forEach(s -> System.out.println("  " + printer.print(s)));
+    statements.forEach(s -> {
+      if (s != null) {
+        System.out.println("  " + printer.print(s));
+      } else {
+        System.out.println("  " + s); 
+      }
+    });
     System.out.println();
   }
 }

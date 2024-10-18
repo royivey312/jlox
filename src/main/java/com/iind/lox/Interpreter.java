@@ -9,6 +9,7 @@ import com.iind.lox.Expr.Ternary;
 import com.iind.lox.Expr.Unary;
 import com.iind.lox.Expr.Variable;
 import com.iind.lox.Stmt.Expression;
+import com.iind.lox.Stmt.IfControl;
 import com.iind.lox.Stmt.Print;
 import com.iind.lox.Stmt.Var;
 import java.util.List;
@@ -155,6 +156,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Void visitExpressionStmt(Expression expression) {
     evaluate(expression.expr);
+    return null;
+  }
+
+  @Override
+  public Void visitIfControlStmt(IfControl ifControl) {
+    if (isTruthy(evaluate(ifControl.cond))) {
+      execute(ifControl.thenBranch);
+    } else {
+      execute(ifControl.elseBranch);
+    }
+
     return null;
   }
 
