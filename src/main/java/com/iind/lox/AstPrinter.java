@@ -5,6 +5,7 @@ import com.iind.lox.Expr.Binary;
 import com.iind.lox.Expr.Block;
 import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
+import com.iind.lox.Expr.Logical;
 import com.iind.lox.Expr.Ternary;
 import com.iind.lox.Expr.Unary;
 import com.iind.lox.Expr.Variable;
@@ -27,13 +28,18 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   }
 
   @Override
-  public String visitTernaryExpr(Ternary ternary) {
-    return parenthesize("?", ternary.cond, ternary.exprTrue, ternary.exprFalse);
+  public String visitLogicalExpr(Logical logical) {
+    return parenthesize(logical.operator.lexeme, logical.left, logical.right);
   }
 
   @Override
   public String visitBinaryExpr(Binary binary) {
     return parenthesize(binary.operator.lexeme, binary.left, binary.right);
+  }
+
+  @Override
+  public String visitTernaryExpr(Ternary ternary) {
+    return parenthesize("?", ternary.cond, ternary.exprTrue, ternary.exprFalse);
   }
 
   @Override

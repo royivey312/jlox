@@ -5,6 +5,7 @@ import com.iind.lox.Expr.Binary;
 import com.iind.lox.Expr.Block;
 import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
+import com.iind.lox.Expr.Logical;
 import com.iind.lox.Expr.Ternary;
 import com.iind.lox.Expr.Unary;
 import com.iind.lox.Expr.Variable;
@@ -66,6 +67,23 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Object visitTernaryExpr(Ternary ternary) {
     Object condResult = evaluate(ternary.cond);
     return isTruthy(condResult) ? evaluate(ternary.exprTrue) : evaluate(ternary.exprFalse);
+  }
+
+  @Override
+  public Object visitLogicalExpr(Logical logical) {
+    Object lhs = evaluate(logical.left);
+
+    if (logical.operator.type == TokenType.OR) {
+      if(isTruthy(lhs)) {
+        return lhs;
+      }
+    } else {
+      if(!isTruthy(lhs)) {
+        return lhs;
+      }
+    }
+
+    return evaluate(logical.right);
   }
 
   @Override

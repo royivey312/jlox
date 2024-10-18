@@ -85,7 +85,7 @@ public class Parser {
     consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
 
     Expr increment = null;
-    if(!check(TokenType.SEMICOLON)) {
+    if (!check(TokenType.SEMICOLON)) {
       increment = expression();
     }
     consume(TokenType.RIGHT_PAREN, "Expect ')' after clauses.");
@@ -171,11 +171,11 @@ public class Parser {
   }
 
   private Expr assignment() {
-    Expr expr = equality();
+    Expr expr = ternary();
 
     if (match(TokenType.EQUAL)) {
       Token equals = previous();
-      Expr value = expression();
+      Expr value = assignment();
 
       if (expr instanceof Expr.Variable) {
         Token name = ((Expr.Variable) expr).name;
@@ -183,6 +183,44 @@ public class Parser {
       } else {
         error(equals, "Invalid assignment target.");
       }
+    }
+
+    return expr;
+  }
+
+  private Expr ternary() {
+    Expr expr = and();
+    if (match(TokenType.QUESTION_MARK)) {
+      Expr exprTrue = ternary();
+      if (match(TokenType.COLON)) {
+        Expr exprFalse = ternary();
+        expr = new Expr.Ternary(expr, exprTrue, exprFalse);
+      } else {
+        throw error(peek(), "Expect ':' for ternary termination.");
+      }
+    }
+    return expr;
+  }
+
+  private Expr and() {
+    Expr expr = or();
+
+    while (match(TokenType.AND)) {
+      Token operator = previous();
+      Expr right = or();
+      expr = new Expr.Logical(expr, operator, right);
+    }
+
+    return expr;
+  }
+
+  private Expr or() {
+    Expr expr = equality();
+
+    while (match(TokenType.OR)) {
+      Token operator = previous();
+      Expr right = equality();
+      expr = new Expr.Logical(expr, operator, right);
     }
 
     return expr;
@@ -208,21 +246,6 @@ public class Parser {
       Token operator = previous();
       Expr right = term();
       expr = binary(expr, operator, right);
-    }
-
-    if (match(TokenType.QUESTION_MARK)) expr = ternary(expr);
-
-    return expr;
-  }
-
-  private Expr ternary(Expr cond) {
-    Expr expr = expression();
-
-    if (match(TokenType.COLON)) {
-      Expr exprFalse = expression();
-      expr = new Expr.Ternary(cond, expr, exprFalse);
-    } else {
-      throw error(peek(), "Expected ternary termination!");
     }
 
     return expr;
