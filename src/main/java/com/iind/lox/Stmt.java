@@ -7,6 +7,7 @@ public abstract class Stmt {
   interface Visitor<R> {
     R visitExpressionStmt(Expression expression);
     R visitIfControlStmt(IfControl ifControl);
+    R visitWhileControlStmt(WhileControl whileControl);
     R visitVarStmt(Var var);
     R visitBlockStmt(Block block);
     R visitPrintStmt(Print print);
@@ -39,6 +40,20 @@ public abstract class Stmt {
 
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitIfControlStmt(this);
+    }
+  }
+
+  static class WhileControl extends Stmt {
+    final Expr cond;
+    final Stmt body;
+
+    WhileControl(Expr cond, Stmt body) {
+      this.cond = cond;
+      this.body = body;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitWhileControlStmt(this);
     }
   }
 

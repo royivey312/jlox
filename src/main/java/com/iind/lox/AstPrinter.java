@@ -12,6 +12,7 @@ import com.iind.lox.Stmt.Expression;
 import com.iind.lox.Stmt.IfControl;
 import com.iind.lox.Stmt.Print;
 import com.iind.lox.Stmt.Var;
+import com.iind.lox.Stmt.WhileControl;
 
 public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
@@ -77,6 +78,11 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   }
 
   @Override
+  public String visitPrintStmt(Print print) {
+    return "print:" + print.expr.accept(this);
+  }
+
+  @Override
   public String visitBlockStmt(Stmt.Block block) {
     StringBuilder builder = new StringBuilder();
     for (Stmt statement : block.statements) {
@@ -86,12 +92,12 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
           .append(statement.accept(this))
           .append("\n");
     }
-    return "blockStmt:\n" + builder.toString();
+    return "blockStmt:" + builder.toString();
   }
 
   @Override
-  public String visitPrintStmt(Print print) {
-    return "print:" + print.expr.accept(this);
+  public String visitWhileControlStmt(WhileControl whileControl) {
+    return parenthesize("while" , whileControl.cond) + whileControl.body.accept(this);
   }
 
   @Override

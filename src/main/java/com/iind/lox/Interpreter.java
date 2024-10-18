@@ -12,6 +12,8 @@ import com.iind.lox.Stmt.Expression;
 import com.iind.lox.Stmt.IfControl;
 import com.iind.lox.Stmt.Print;
 import com.iind.lox.Stmt.Var;
+import com.iind.lox.Stmt.WhileControl;
+
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
@@ -174,6 +176,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Void visitPrintStmt(Print print) {
     Object value = evaluate(print.expr);
     System.out.println(stringify(value));
+    return null;
+  }
+
+  @Override
+  public Void visitWhileControlStmt(WhileControl whileControl) {
+    while(isTruthy(evaluate(whileControl.cond))) {
+      execute(whileControl.body);
+    }
+
     return null;
   }
 

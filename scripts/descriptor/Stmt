@@ -1,6 +1,7 @@
 class_name:data0,data1,data2
 Expression:Expr expr
 IfControl:Expr cond,Stmt thenBranch,Stmt elseBranch
+WhileControl:Expr cond,Stmt body
 Var:Token name,Expr initializer
 Block:List<Stmt> statements
 Print:Expr expr

@@ -1,6 +1,7 @@
 package com.iind.lox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Parser {
@@ -50,19 +51,61 @@ public class Parser {
   }
 
   private Stmt statement() {
-    if (match(TokenType.IF)) {
+    if (match(TokenType.FOR)) {
+      return forControlStatement();
+    } else if (match(TokenType.IF)) {
       return ifStatement();
-    }
-
-    else if (match(TokenType.PRINT)) {
+    } else if (match(TokenType.PRINT)) {
       return printStatement();
-    }
-
-    else if (match(TokenType.LEFT_BRACE)) {
+    } else if (match(TokenType.WHILE)) {
+      return whileStatement();
+    } else if (match(TokenType.LEFT_BRACE)) {
       return blockStatement();
     }
 
     return expressionStatement();
+  }
+
+  private Stmt forControlStatement() {
+    consume(TokenType.LEFT_PAREN, "Expect '(' after if.");
+    Stmt initializer = null;
+
+    if (match(TokenType.SEMICOLON)) {
+      initializer = null;
+    } else if (match(TokenType.VAR)) {
+      initializer = varDeclaration();
+    } else {
+      initializer = expressionStatement();
+    }
+
+    Expr cond = null;
+    if (!check(TokenType.SEMICOLON)) {
+      cond = expression();
+    }
+    consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
+
+    Expr increment = null;
+    if(!check(TokenType.SEMICOLON)) {
+      increment = expression();
+    }
+    consume(TokenType.RIGHT_PAREN, "Expect ')' after clauses.");
+
+    Stmt body = statement();
+
+    if (increment != null) {
+      body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+    }
+
+    if (cond == null) {
+      cond = new Expr.Literal(true);
+    }
+    body = new Stmt.WhileControl(cond, body);
+
+    if (initializer != null) {
+      body = new Stmt.Block(Arrays.asList(initializer, body));
+    }
+
+    return body;
   }
 
   private Stmt ifStatement() {
@@ -86,10 +129,20 @@ public class Parser {
     return new Stmt.Print(expr);
   }
 
+  private Stmt whileStatement() {
+    consume(TokenType.LEFT_PAREN, "Expect '(' after while.");
+    Expr cond = expression();
+    consume(TokenType.RIGHT_PAREN, "Expect ')' after while condition.");
+
+    Stmt body = statement();
+
+    return new Stmt.WhileControl(cond, body);
+  }
+
   private Stmt blockStatement() {
     List<Stmt> statements = new ArrayList<>();
     while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-      statements.add(statement());
+      statements.add(declaration());
     }
 
     consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
@@ -125,7 +178,7 @@ public class Parser {
       Expr value = expression();
 
       if (expr instanceof Expr.Variable) {
-        Token name = ((Expr.Variable)expr).name;
+        Token name = ((Expr.Variable) expr).name;
         expr = new Expr.Assignment(name, value);
       } else {
         error(equals, "Invalid assignment target.");
@@ -325,13 +378,14 @@ public class Parser {
   private void debug(List<Stmt> statements) {
     AstPrinter printer = new AstPrinter();
     System.out.println("Parser Output:");
-    statements.forEach(s -> {
-      if (s != null) {
-        System.out.println("  " + printer.print(s));
-      } else {
-        System.out.println("  " + s); 
-      }
-    });
+    statements.forEach(
+        s -> {
+          if (s != null) {
+            System.out.println("  " + printer.print(s));
+          } else {
+            System.out.println("  " + s);
+          }
+        });
     System.out.println();
   }
 }
