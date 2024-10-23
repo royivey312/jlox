@@ -1,5 +1,7 @@
 package com.iind.lox;
 
+import java.util.List;
+
 public abstract class Expr {
 
   interface Visitor<R> {
@@ -12,6 +14,7 @@ public abstract class Expr {
     R visitLogicalExpr(Logical logical);
     R visitVariableExpr(Variable variable);
     R visitUnaryExpr(Unary unary);
+    R visitCallExpr(Call call);
   }
 
   abstract <R> R accept(Visitor<R> visitor);
@@ -139,6 +142,22 @@ public abstract class Expr {
 
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitUnaryExpr(this);
+    }
+  }
+
+  static class Call extends Expr {
+    final Expr callee;
+    final Token paren;
+    final List<Expr> args;
+
+    Call(Expr callee, Token paren, List<Expr> args) {
+      this.callee = callee;
+      this.paren = paren;
+      this.args = args;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitCallExpr(this);
     }
   }
 

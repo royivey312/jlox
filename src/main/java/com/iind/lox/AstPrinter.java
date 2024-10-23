@@ -3,6 +3,7 @@ package com.iind.lox;
 import com.iind.lox.Expr.Assignment;
 import com.iind.lox.Expr.Binary;
 import com.iind.lox.Expr.Block;
+import com.iind.lox.Expr.Call;
 import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
 import com.iind.lox.Expr.Logical;
@@ -10,8 +11,10 @@ import com.iind.lox.Expr.Ternary;
 import com.iind.lox.Expr.Unary;
 import com.iind.lox.Expr.Variable;
 import com.iind.lox.Stmt.Expression;
+import com.iind.lox.Stmt.Function;
 import com.iind.lox.Stmt.IfControl;
 import com.iind.lox.Stmt.Print;
+import com.iind.lox.Stmt.ReturnControl;
 import com.iind.lox.Stmt.Var;
 import com.iind.lox.Stmt.WhileControl;
 
@@ -103,7 +106,7 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
   @Override
   public String visitWhileControlStmt(WhileControl whileControl) {
-    return parenthesize("while" , whileControl.cond) + whileControl.body.accept(this);
+    return parenthesize("while", whileControl.cond) + whileControl.body.accept(this);
   }
 
   @Override
@@ -139,5 +142,23 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
             new Expr.Grouping(new Expr.Literal(45.67)));
 
     System.out.println(new AstPrinter().print(expression));
+  }
+
+  @Override
+  public String visitFunctionStmt(Function function) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'visitFunctionStmt'");
+  }
+
+  @Override
+  public String visitCallExpr(Call call) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'visitCallExpr'");
+  }
+
+  @Override
+  public String visitReturnControlStmt(ReturnControl returnControl) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'visitReturnControlStmt'");
   }
 }

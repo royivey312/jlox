@@ -8,7 +8,9 @@ public abstract class Stmt {
     R visitExpressionStmt(Expression expression);
     R visitIfControlStmt(IfControl ifControl);
     R visitWhileControlStmt(WhileControl whileControl);
+    R visitReturnControlStmt(ReturnControl returnControl);
     R visitVarStmt(Var var);
+    R visitFunctionStmt(Function function);
     R visitBlockStmt(Block block);
     R visitPrintStmt(Print print);
   }
@@ -57,6 +59,20 @@ public abstract class Stmt {
     }
   }
 
+  static class ReturnControl extends Stmt {
+    final Token keyword;
+    final Expr res;
+
+    ReturnControl(Token keyword, Expr res) {
+      this.keyword = keyword;
+      this.res = res;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitReturnControlStmt(this);
+    }
+  }
+
   static class Var extends Stmt {
     final Token name;
     final Expr initializer;
@@ -68,6 +84,22 @@ public abstract class Stmt {
 
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitVarStmt(this);
+    }
+  }
+
+  static class Function extends Stmt {
+    final Token name;
+    final List<Token> params;
+    final List<Stmt> body;
+
+    Function(Token name, List<Token> params, List<Stmt> body) {
+      this.name = name;
+      this.params = params;
+      this.body = body;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitFunctionStmt(this);
     }
   }
 

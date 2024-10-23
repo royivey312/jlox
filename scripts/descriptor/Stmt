@@ -2,6 +2,8 @@ class_name:data0,data1,data2
 Expression:Expr expr
 IfControl:Expr cond,Stmt thenBranch,Stmt elseBranch
 WhileControl:Expr cond,Stmt body
+ReturnControl:Token keyword,Expr res
 Var:Token name,Expr initializer
+Function:Token name,List<Token> params,List<Stmt> body
 Block:List<Stmt> statements
 Print:Expr expr

@@ -82,10 +82,10 @@ function writeBottom() {
   echo "}"
 }
 
-function main() {
-  descriptor="${1?$(usage)}"
-  javaFileName="${2?${usage}}"
-
+function generate() {
+  if [ "$debug" ]; then
+    echo "In Generate ($descriptor, $javaFileName)"
+  fi
   # Exit if provided descriptor is not a file
   [ ! -f "${descriptor}" ] && exit 75
 
@@ -93,24 +93,50 @@ function main() {
 
   # Start fresh file
   writeTop > ${javaFileName}
-
-  # Write Visitor Interface
   writeVisitorInterface >> ${javaFileName}
 
   # Read Descriptor File, skipping header row
   while IFS=":" read -r innerClassName elements; do
     readarray -td , elemArray <<< "${elements}" # Generate Array from CSV
+    
+    # Bugfix: Remove \n from last element
     for ((i = 0; i < ${#elemArray[@]}; i++)); do
       elemArray[$i]=$(echo -n "${elemArray[$i]}"|sed 's/\n//g')
     done
 
-    printGenerationDetails
+    if [ "$verbose" ]; then
+      printGenerationDetails
+    fi
+
     writeInnerStaticClass >> "${javaFileName}"
   done <<< "$(tail -n +2 "${descriptor}")"
 
   writeBottom >> ${javaFileName}
+}
 
-  cat ${javaFileName}
+function main() {
+  while getopts "RXv" opt; do
+    case "${opt}" in
+      R) repl=true && echo "Replication enabled.";;
+      X) debug=true && echo "Debug enabled.";;
+      v) verbose=true && echo "Verbose enabled.";;
+      *) echo "-$opt is not a valid option";;
+    esac
+  done
+  shift $((OPTIND - 1))
+
+  descriptor="${1?$(usage)}"
+  javaFileName="${2:-$(basename ${1}).java}"
+
+  generate
+
+  if [ "$verbose" ]; then
+    cat "${javaFileName}"
+  fi
+
+  if [ "${repl}" ]; then
+    mv -v "$javaFileName" ../src/main/java/com/iind/lox/
+  fi
 }
 
 main "$@"

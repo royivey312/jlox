@@ -13,6 +13,7 @@ public class Lox {
 
   static boolean hadError;
   static boolean hadRuntimeError;
+  static boolean underTest;
 
   static final LoxInterpreterOptions OPTIONS = new LoxInterpreterOptions();
 
@@ -33,6 +34,7 @@ public class Lox {
 
     run(new String(bytes, Charset.defaultCharset()));
 
+    if (underTest && (hadError || hadRuntimeError)) throw new RuntimeException("Test Failed.");
     if (hadError) System.exit(65);
     if (hadRuntimeError) System.exit(70);
   }
