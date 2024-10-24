@@ -17,13 +17,16 @@ import com.iind.lox.Stmt.Print;
 import com.iind.lox.Stmt.ReturnControl;
 import com.iind.lox.Stmt.Var;
 import com.iind.lox.Stmt.WhileControl;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   final Environment globals = new Environment();
   private Environment environment = globals;
+  private final Map<Expr, Integer> locals = new HashMap<>();
 
   Interpreter() {
     globals.define(
@@ -60,6 +63,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     statement.accept(this);
   }
 
+  void resolve(Expr expr, int depth) {
+    locals.put(expr, depth);
+  }
+
   void executeBlockStmt(List<Stmt> statements, Environment environment) {
     Environment prev = this.environment;
     try {
@@ -83,7 +90,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Object visitAssignmentExpr(Assignment assignment) {
     Object value = evaluate(assignment.value);
-    environment.assign(assignment.name, value);
+
+    Integer distance = locals.get(assignment);
+    if (distance != null) {
+      environment.assignAt(distance, assignment.name, value);
+    } else {
+      globals.assign(assignment.name, value);
+    }
+
     return value;
   }
 
@@ -192,7 +206,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Object visitVariableExpr(Variable variable) {
-    return environment.get(variable.name);
+    return lookupVariable(variable.name, variable);
+  }
+
+  private Object lookupVariable(Token name, Expr expr) {
+    Integer distance = locals.get(expr);
+    if (distance != null) {
+      return environment.getAt(distance, name.lexeme);
+    } else {
+      return globals.get(name);
+    }
   }
 
   @Override
