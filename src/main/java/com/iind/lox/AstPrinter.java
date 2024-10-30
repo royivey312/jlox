@@ -4,12 +4,16 @@ import com.iind.lox.Expr.Assignment;
 import com.iind.lox.Expr.Binary;
 import com.iind.lox.Expr.Block;
 import com.iind.lox.Expr.Call;
+import com.iind.lox.Expr.Get;
 import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
 import com.iind.lox.Expr.Logical;
+import com.iind.lox.Expr.Set;
 import com.iind.lox.Expr.Ternary;
+import com.iind.lox.Expr.Thiss;
 import com.iind.lox.Expr.Unary;
 import com.iind.lox.Expr.Variable;
+import com.iind.lox.Stmt.ClassDecl;
 import com.iind.lox.Stmt.Expression;
 import com.iind.lox.Stmt.Function;
 import com.iind.lox.Stmt.IfControl;
@@ -160,5 +164,29 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   public String visitReturnControlStmt(ReturnControl returnControl) {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'visitReturnControlStmt'");
+  }
+
+  @Override
+  public String visitClassDeclStmt(ClassDecl classDecl) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'visitClassDeclStmt'");
+  }
+
+  @Override
+  public String visitSetExpr(Set set) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'visitSetExpr'");
+  }
+
+  @Override
+  public String visitThissExpr(Thiss thiss) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'visitThissExpr'");
+  }
+
+  @Override
+  public String visitGetExpr(Get get) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'visitGetExpr'");
   }
 }

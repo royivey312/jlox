@@ -50,4 +50,9 @@ public class LoxTest {
   void recursion() {
     runScript("FuncRecursion.lox");
   }
+
+  @Test
+  void classCake() {
+    runScript("CakeClass.lox");
+  }
 }

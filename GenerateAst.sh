@@ -135,7 +135,7 @@ function main() {
   fi
 
   if [ "${repl}" ]; then
-    mv -v "$javaFileName" ../src/main/java/com/iind/lox/
+    mv -v "$javaFileName" src/main/java/com/iind/lox/
   fi
 }
 

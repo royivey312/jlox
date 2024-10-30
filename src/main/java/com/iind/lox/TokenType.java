@@ -44,7 +44,7 @@ public enum TokenType {
   SUPER,
   THIS,
 
-  // Statement Kywords
+  // Statement Keywords
   CLASS,
   FUN,
   FOR,

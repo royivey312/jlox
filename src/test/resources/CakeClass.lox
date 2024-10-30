@@ -1,0 +1,18 @@
+class Cake {
+  init() {
+    print this;
+  }
+  taste() {
+    var adjective = "delicious";
+    print "The " + this.flavor + " cake is " + adjective + "!";
+    // Notice that the Cake class does not have a flavlor field defined
+    //   the code below will assign it.
+  }
+}
+
+// This should print "this" 3 times
+var cake = Cake();
+print cake.init();
+
+cake.flavor = "salted caramel";
+cake.taste();

@@ -4,12 +4,16 @@ import com.iind.lox.Expr.Assignment;
 import com.iind.lox.Expr.Binary;
 import com.iind.lox.Expr.Block;
 import com.iind.lox.Expr.Call;
+import com.iind.lox.Expr.Get;
 import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
 import com.iind.lox.Expr.Logical;
+import com.iind.lox.Expr.Set;
 import com.iind.lox.Expr.Ternary;
+import com.iind.lox.Expr.Thiss;
 import com.iind.lox.Expr.Unary;
 import com.iind.lox.Expr.Variable;
+import com.iind.lox.Stmt.ClassDecl;
 import com.iind.lox.Stmt.Expression;
 import com.iind.lox.Stmt.Function;
 import com.iind.lox.Stmt.IfControl;
@@ -26,6 +30,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private final Interpreter interpreter;
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
   private FunctionType currentFunction = FunctionType.NONE;
+  private ClassType currentClassType = ClassType.NONE;
 
   Resolver(Interpreter interpreter) {
     this.interpreter = interpreter;
@@ -33,7 +38,14 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
   private enum FunctionType {
     NONE,
-    FUNCTION
+    FUNCTION,
+    METHOD,
+    INITIALIZER
+  }
+
+  private enum ClassType {
+    NONE,
+    CLASS
   }
 
   // Statement visit methods
@@ -63,6 +75,31 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     define(fun.name);
     resolveFunction(fun, FunctionType.FUNCTION);
 
+    return null;
+  }
+
+  @Override
+  public Void visitClassDeclStmt(ClassDecl classDecl) {
+    ClassType enclosure = currentClassType;
+    currentClassType = ClassType.CLASS;
+
+    declare(classDecl.name);
+    define(classDecl.name);
+
+    beginScope();
+    scopes.peek().put("this", true);
+
+    for (Function func : classDecl.methods) {
+      if ("init".equals(func.name.lexeme)) {
+        resolveFunction(func, FunctionType.INITIALIZER);
+      } else {
+        resolveFunction(func, FunctionType.METHOD);
+      }
+    }
+
+    endScope();
+
+    currentClassType = enclosure;
     return null;
   }
 
@@ -98,6 +135,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
       Lox.error(returnControl.keyword, "Can't return from top-level code.");
     }
     if (returnControl.res != null) {
+      if (currentFunction == FunctionType.INITIALIZER) {
+        Lox.error(returnControl.keyword, "Can't return a value from an initializer");
+      }
       resolve(returnControl.res);
     }
 
@@ -188,6 +228,30 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     resolve(call.callee);
     call.args.stream().forEach(this::resolve);
 
+    return null;
+  }
+
+  @Override
+  public Void visitGetExpr(Get get) {
+    resolve(get.object);
+    return null;
+  }
+
+  @Override
+  public Void visitSetExpr(Set set) {
+    resolve(set.value);
+    resolve(set.object);
+
+    return null;
+  }
+
+  @Override
+  public Void visitThissExpr(Thiss thiss) {
+    if (currentClassType == ClassType.NONE) {
+      Lox.error(thiss.keyword, "Can't use 'this' outside of a class");
+      return null;
+    }
+    resolveLocal(thiss, thiss.keyword);
     return null;
   }
 

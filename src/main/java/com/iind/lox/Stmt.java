@@ -6,12 +6,21 @@ public abstract class Stmt {
 
   interface Visitor<R> {
     R visitExpressionStmt(Expression expression);
+
     R visitIfControlStmt(IfControl ifControl);
+
     R visitWhileControlStmt(WhileControl whileControl);
+
     R visitReturnControlStmt(ReturnControl returnControl);
+
     R visitVarStmt(Var var);
+
     R visitFunctionStmt(Function function);
+
+    R visitClassDeclStmt(ClassDecl classDecl);
+
     R visitBlockStmt(Block block);
+
     R visitPrintStmt(Print print);
   }
 
@@ -103,6 +112,20 @@ public abstract class Stmt {
     }
   }
 
+  static class ClassDecl extends Stmt {
+    final Token name;
+    final List<Function> methods;
+
+    ClassDecl(Token name, List<Function> methods) {
+      this.name = name;
+      this.methods = methods;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitClassDeclStmt(this);
+    }
+  }
+
   static class Block extends Stmt {
     final List<Stmt> statements;
 
@@ -126,5 +149,4 @@ public abstract class Stmt {
       return visitor.visitPrintStmt(this);
     }
   }
-
 }

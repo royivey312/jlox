@@ -6,10 +6,18 @@ import java.util.List;
 public class LoxFunction implements LoxCallable {
   private final Function decl;
   private final Environment closure;
+  private final boolean isInitializer;
 
-  LoxFunction(Function decl, Environment closure) {
+  LoxFunction(Function decl, Environment closure, boolean isInitializer) {
+    this.isInitializer = isInitializer;
     this.decl = decl;
     this.closure = closure;
+  }
+
+  LoxFunction bind(LoxInstance instance) {
+    Environment environment = new Environment(closure);
+    environment.define("this", instance);
+    return new LoxFunction(decl, environment, isInitializer);
   }
 
   public int arity() {
@@ -28,9 +36,15 @@ public class LoxFunction implements LoxCallable {
     try {
       interpreter.executeBlockStmt(decl.body, funEnv);
     } catch (Return res) {
+      if (isInitializer) {
+        return closure.getAt(0, "this");
+      }
       return res.value;
     }
 
+    if (isInitializer) {
+      return closure.getAt(0, "this");
+    }
     return null;
   }
 

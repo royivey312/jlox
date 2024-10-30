@@ -4,12 +4,16 @@ import com.iind.lox.Expr.Assignment;
 import com.iind.lox.Expr.Binary;
 import com.iind.lox.Expr.Block;
 import com.iind.lox.Expr.Call;
+import com.iind.lox.Expr.Get;
 import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
 import com.iind.lox.Expr.Logical;
+import com.iind.lox.Expr.Set;
 import com.iind.lox.Expr.Ternary;
+import com.iind.lox.Expr.Thiss;
 import com.iind.lox.Expr.Unary;
 import com.iind.lox.Expr.Variable;
+import com.iind.lox.Stmt.ClassDecl;
 import com.iind.lox.Stmt.Expression;
 import com.iind.lox.Stmt.Function;
 import com.iind.lox.Stmt.IfControl;
@@ -200,6 +204,36 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   @Override
+  public Object visitGetExpr(Get get) {
+    Object object = evaluate(get.object);
+
+    if (object instanceof LoxInstance) {
+      return ((LoxInstance) object).get(get.name);
+    }
+
+    throw new RuntimeError(get.name, "Only class instances have properties.");
+  }
+
+  @Override
+  public Object visitSetExpr(Set set) {
+    Object object = evaluate(set.object);
+
+    if (!(object instanceof LoxInstance)) {
+      throw new RuntimeError(set.name, "Only class instance have properties.");
+    }
+
+    Object value = evaluate(set.value);
+    ((LoxInstance) object).set(set.name, value);
+
+    return value;
+  }
+
+  @Override
+  public Object visitThissExpr(Thiss thiss) {
+    return lookupVariable(thiss.keyword, thiss);
+  }
+
+  @Override
   public Object visitGroupingExpr(Grouping grouping) {
     return evaluate(grouping.expression);
   }
@@ -298,8 +332,24 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   @Override
+  public Void visitClassDeclStmt(ClassDecl classDecl) {
+    environment.define(classDecl.name.lexeme, null);
+
+    Map<String, LoxFunction> methods = new HashMap<>();
+    for (Function method : classDecl.methods) {
+      LoxFunction func = new LoxFunction(method, environment, "init".equals(method.name.lexeme));
+      methods.put(method.name.lexeme, func);
+    }
+
+    LoxClass xlass = new LoxClass(classDecl.name.lexeme, methods);
+    environment.assign(classDecl.name, xlass);
+
+    return null;
+  }
+
+  @Override
   public Void visitFunctionStmt(Function fun) {
-    environment.define(fun.name.lexeme, new LoxFunction(fun, environment));
+    environment.define(fun.name.lexeme, new LoxFunction(fun, environment, false));
     return null;
   }
 

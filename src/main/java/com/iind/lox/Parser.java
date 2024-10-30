@@ -1,5 +1,6 @@
 package com.iind.lox;
 
+import com.iind.lox.Stmt.Function;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +29,9 @@ public class Parser {
 
   private Stmt declaration() {
     try {
+      if (match(TokenType.CLASS)) {
+        return classDeclaration();
+      }
       if (match(TokenType.FUN)) {
         return funDeclaration("function");
       }
@@ -41,7 +45,20 @@ public class Parser {
     }
   }
 
-  private Stmt funDeclaration(String kind) {
+  private Stmt classDeclaration() {
+    Token name = consume(TokenType.IDENTIFIER, "Expect Identifier for class declaration.");
+    consume(TokenType.LEFT_BRACE, "Expect '{' after class name.");
+
+    List<Function> methods = new ArrayList<>();
+    while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+      methods.add(funDeclaration("method"));
+    }
+
+    consume(TokenType.RIGHT_BRACE, "Expect '}' at end of class body.");
+    return new Stmt.ClassDecl(name, methods);
+  }
+
+  private Function funDeclaration(String kind) {
     Token name = consume(TokenType.IDENTIFIER, String.format("Expect %s name", kind));
     consume(TokenType.LEFT_PAREN, String.format("Expect '(' after %s name.", kind));
 
@@ -218,6 +235,9 @@ public class Parser {
       if (expr instanceof Expr.Variable) {
         Token name = ((Expr.Variable) expr).name;
         expr = new Expr.Assignment(name, value);
+      } else if (expr instanceof Expr.Get) {
+        Expr.Get get = (Expr.Get) expr;
+        expr = new Expr.Set(get.object, get.name, value);
       } else {
         error(equals, "Invalid assignment target.");
       }
@@ -329,6 +349,9 @@ public class Parser {
     while (true) {
       if (match(TokenType.LEFT_PAREN)) {
         expr = finishCall(expr);
+      } else if (match(TokenType.DOT)) {
+        Token name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+        expr = new Expr.Get(expr, name);
       } else {
         break;
       }
@@ -369,6 +392,10 @@ public class Parser {
 
     if (match(TokenType.NUMBER, TokenType.STRING)) {
       return new Expr.Literal(previous().literal);
+    }
+
+    if (match(TokenType.THIS)) {
+      return new Expr.Thiss(previous());
     }
 
     if (match(TokenType.IDENTIFIER)) {
