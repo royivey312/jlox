@@ -9,6 +9,7 @@ import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
 import com.iind.lox.Expr.Logical;
 import com.iind.lox.Expr.Set;
+import com.iind.lox.Expr.Superr;
 import com.iind.lox.Expr.Ternary;
 import com.iind.lox.Expr.Thiss;
 import com.iind.lox.Expr.Unary;
@@ -45,7 +46,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
   private enum ClassType {
     NONE,
-    CLASS
+    CLASS,
+    SUBCLASS
   }
 
   // Statement visit methods
@@ -85,6 +87,17 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     declare(classDecl.name);
     define(classDecl.name);
+    if (classDecl.superClass != null
+        && classDecl.name.lexeme.equals(classDecl.superClass.name.lexeme)) {
+      Lox.error(classDecl.superClass.name, "Class can not be a subclass of itself.");
+    }
+
+    if (classDecl.superClass != null) {
+      currentClassType = ClassType.SUBCLASS;
+      resolve(classDecl.superClass);
+      beginScope();
+      scopes.peek().put("super", true);
+    }
 
     beginScope();
     scopes.peek().put("this", true);
@@ -98,6 +111,10 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     endScope();
+
+    if (classDecl.superClass != null) {
+      endScope();
+    }
 
     currentClassType = enclosure;
     return null;
@@ -252,6 +269,19 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
       return null;
     }
     resolveLocal(thiss, thiss.keyword);
+    return null;
+  }
+
+  @Override
+  public Void visitSuperrExpr(Superr superr) {
+    if (currentClassType == ClassType.NONE) {
+      Lox.error(superr.keyword, "Can't reference super outside of a class.");
+    } else if (currentClassType == ClassType.CLASS) {
+      Lox.error(superr.keyword, "Can't reference super without being a subclass.");
+    } else {
+      resolveLocal(superr, superr.keyword);
+    }
+
     return null;
   }
 

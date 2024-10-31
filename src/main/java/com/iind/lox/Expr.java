@@ -16,6 +16,7 @@ public abstract class Expr {
     R visitUnaryExpr(Unary unary);
     R visitCallExpr(Call call);
     R visitThissExpr(Thiss thiss);
+    R visitSuperrExpr(Superr superr);
     R visitSetExpr(Set set);
     R visitGetExpr(Get get);
   }
@@ -173,6 +174,20 @@ public abstract class Expr {
 
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitThissExpr(this);
+    }
+  }
+
+  static class Superr extends Expr {
+    final Token keyword;
+    final Token method;
+
+    Superr(Token keyword, Token method) {
+      this.keyword = keyword;
+      this.method = method;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitSuperrExpr(this);
     }
   }
 

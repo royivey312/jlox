@@ -10,5 +10,6 @@ Variable:Token name
 Unary:Token operator,Expr right
 Call:Expr callee,Token paren,List<Expr> args
 Thiss:Token keyword
+Superr:Token keyword,Token method
 Set:Expr object,Token name,Expr value
 Get:Expr object,Token name

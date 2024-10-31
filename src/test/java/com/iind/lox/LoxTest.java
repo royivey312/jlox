@@ -3,6 +3,7 @@ package com.iind.lox;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ public class LoxTest {
   @BeforeAll
   static void beforeAll() {
     Lox.underTest = true;
+    Lox.OPTIONS.silentMode = true;
   }
 
   @BeforeEach
@@ -54,5 +56,15 @@ public class LoxTest {
   @Test
   void classCake() {
     runScript("CakeClass.lox");
+  }
+
+  @Test
+  void subClassDoughnut() {
+    runScript("SuperDoughnut.lox");
+  }
+
+  @AfterAll
+  static void afterAll() {
+    System.out.println("\u001B[32m-- Lox Tests Completed --\u001B[0m");
   }
 }

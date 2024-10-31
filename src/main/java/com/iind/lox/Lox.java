@@ -102,22 +102,31 @@ public class Lox {
     boolean scannerDebug = false;
     boolean parserDebug = false;
     boolean interpreterDebug = false;
+    boolean silentMode = false;
 
     public void collectOptions() {
-      if (isOn("scannerDebug")) scannerDebug = true;
-      if (isOn("parserDebug")) parserDebug = true;
-      if (isOn("interpreterDebug")) interpreterDebug = true;
-      printOptions();
+      if (isOn("scannerDebug")) {
+        scannerDebug = true;
+        System.out.println("scannerDebug=" + scannerDebug);
+      }
+
+      if (isOn("parserDebug")) {
+        parserDebug = true;
+        System.out.println("parserDebug=" + parserDebug);
+      }
+
+      if (isOn("interpreterDebug")) {
+        interpreterDebug = true;
+        System.out.println("interpreterDebug=" + interpreterDebug);
+      }
+
+      if (isOn("silent")) {
+        silentMode = true;
+      }
     }
 
     private boolean isOn(String prop) {
       return System.getProperty(prop) != null;
-    }
-
-    private void printOptions() {
-      System.out.println("scannerDebug=" + scannerDebug);
-      System.out.println("parserDebug=" + parserDebug);
-      System.out.println("interpreterDebug=" + interpreterDebug);
     }
   }
 }

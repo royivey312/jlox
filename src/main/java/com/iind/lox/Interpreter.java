@@ -9,6 +9,7 @@ import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
 import com.iind.lox.Expr.Logical;
 import com.iind.lox.Expr.Set;
+import com.iind.lox.Expr.Superr;
 import com.iind.lox.Expr.Ternary;
 import com.iind.lox.Expr.Thiss;
 import com.iind.lox.Expr.Unary;
@@ -234,6 +235,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   @Override
+  public Object visitSuperrExpr(Superr superr) {
+    int distance = locals.get(superr);
+    LoxClass superClass = (LoxClass) environment.getAt(distance, "super");
+    LoxInstance object = (LoxInstance) environment.getAt(distance - 1, "this");
+    LoxFunction method = superClass.findMethod(superr.method.lexeme);
+
+    if (method == null) {
+      throw new RuntimeError(
+          superr.method, String.format("Undefinded property '%s'.", superr.method.lexeme));
+    }
+
+    return method.bind(object);
+  }
+
+  @Override
   public Object visitGroupingExpr(Grouping grouping) {
     return evaluate(grouping.expression);
   }
@@ -295,7 +311,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Void visitPrintStmt(Print print) {
     Object value = evaluate(print.expr);
-    System.out.println(stringify(value));
+
+    if (!Lox.OPTIONS.silentMode) {
+      System.out.println(stringify(value));
+    }
 
     return null;
   }
@@ -333,7 +352,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitClassDeclStmt(ClassDecl classDecl) {
+    Object superClass = null;
+    if (classDecl.superClass != null) {
+      superClass = evaluate(classDecl.superClass);
+      if (!(superClass instanceof LoxClass)) {
+        throw new RuntimeError(classDecl.superClass.name, "Super class must be a class.");
+      }
+    }
+
     environment.define(classDecl.name.lexeme, null);
+
+    if (classDecl.superClass != null) {
+      environment = new Environment(environment);
+      environment.define("super", superClass);
+    }
 
     Map<String, LoxFunction> methods = new HashMap<>();
     for (Function method : classDecl.methods) {
@@ -341,7 +373,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       methods.put(method.name.lexeme, func);
     }
 
-    LoxClass xlass = new LoxClass(classDecl.name.lexeme, methods);
+    LoxClass xlass = new LoxClass(classDecl.name.lexeme, (LoxClass) superClass, methods);
+
+    if (classDecl.superClass != null) {
+      environment = environment.enclosing;
+    }
+
     environment.assign(classDecl.name, xlass);
 
     return null;

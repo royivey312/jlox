@@ -5,6 +5,6 @@ WhileControl:Expr cond,Stmt body
 ReturnControl:Token keyword,Expr res
 Var:Token name,Expr initializer
 Function:Token name,List<Token> params,List<Stmt> body
-ClassDecl:Token name,List<Function> methods
+ClassDecl:Token name,Expr.Variable superClass,List<Function> methods
 Block:List<Stmt> statements
 Print:Expr expr

@@ -9,6 +9,7 @@ import com.iind.lox.Expr.Grouping;
 import com.iind.lox.Expr.Literal;
 import com.iind.lox.Expr.Logical;
 import com.iind.lox.Expr.Set;
+import com.iind.lox.Expr.Superr;
 import com.iind.lox.Expr.Ternary;
 import com.iind.lox.Expr.Thiss;
 import com.iind.lox.Expr.Unary;
@@ -188,5 +189,11 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   public String visitGetExpr(Get get) {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'visitGetExpr'");
+  }
+
+  @Override
+  public String visitSuperrExpr(Superr superr) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'visitSuperrExpr'");
   }
 }
